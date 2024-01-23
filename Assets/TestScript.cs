@@ -1,28 +1,33 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 public class TestScript : MonoBehaviour
 {
-	public ARSession _ARSession;
+    public ARSession _ARSession;
 
-	public ARTrackedImageManager _ARTrackedImageManager;
+    public ARTrackedImageManager _ARTrackedImageManager;
 
-	public void OPD()
-	{
-		_ARTrackedImageManager.enabled = true;
-	}
+    public IReferenceImageLibrary referenceImageLibrary;
 
-	public void OPU()
-	{
-		_ARTrackedImageManager.enabled = false;
-	}
+    private void Awake()
+    {
+        referenceImageLibrary = _ARTrackedImageManager.referenceLibrary;
+    }
 
-	public void ARReset()
-	{
-		_ARSession.Reset();
-	}
+    public void OPD()
+    {
+        _ARTrackedImageManager.enabled = true;
+        _ARTrackedImageManager.referenceLibrary = referenceImageLibrary;
+    }
+
+    public void OPU()
+    {
+        _ARTrackedImageManager.enabled = false;
+    }
+
+    public void ARReset()
+    {
+        _ARSession.Reset();
+    }
 }
