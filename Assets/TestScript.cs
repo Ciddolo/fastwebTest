@@ -6,6 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using TMPro;
 
 public enum ARCustomStates
 {
@@ -37,45 +38,29 @@ public class ARCustom
 	[Header("Data")]
 	public ARCustomStates _ARState;
 
-	public bool _PrintDebug;
+	public ARCustomDebug _Debug;
 
-	public List<GameObject> _Markers;
-
-	private ARTrackedImagesChangedEventArgs _info;
+	public ARTrackedImagesChangedEventArgs _Info;
 
 	public void Init()
 	{
-		_ARState = ARCustomStates.Starting;
+		SetState(ARCustomStates.Starting);
 
 		_ARTrackedImageManager.trackedImagesChanged += (info) => { PrefabManager(info); };
 
-		_Markers = new List<GameObject>();
+		_Debug.Init(this);
 
-		_ARState = ARCustomStates.Waiting;
+		SetState(ARCustomStates.Waiting);
 	}
 
 	private void PrefabManager(ARTrackedImagesChangedEventArgs info)
 	{
-		_info = info;
+		_Info = info;
+	}
 
-		if (!_PrintDebug) return;
-
-		for (int i = 0; i < _info.added.Count; i++)
-		{
-			Debug.Log(string.Format("ADDED {0} {1}", _info.added[i].referenceImage.name, _info.added[i].referenceImage.ToString()));
-		}
-
-		for (int i = 0; i < _info.updated.Count; i++)
-		{
-			Debug.Log(string.Format("UPDATED {0} {1}", _info.updated[i].referenceImage.name, _info.updated[i].referenceImage.ToString()));
-		}
-
-		for (int i = 0; i < _info.removed.Count; i++)
-		{
-			Debug.Log(string.Format("REMOVED {0} {1}", _info.removed[i].referenceImage.name, _info.removed[i].referenceImage.ToString()));
-		}
-
-		Debug.Log(_ARTrackedImageManager.trackables);
+	public void SessionSwitch()
+	{
+		_ARSession.enabled = !_ARSession.enabled;
 	}
 
 	public void StartTracking()
@@ -86,7 +71,7 @@ public class ARCustom
 
 		_ARTrackedImageManager.enabled = true;
 
-		_ARState = ARCustomStates.Tracking;
+		SetState(ARCustomStates.Tracking);
 	}
 
 	public void StopTracking()
@@ -95,16 +80,16 @@ public class ARCustom
 
 		_ARTrackedImageManager.enabled = false;
 
-		_ARState = ARCustomStates.Waiting;
+		SetState(ARCustomStates.Waiting);
 	}
 
 	public IEnumerator ResetSession()
 	{
 		if (_ARState == ARCustomStates.Resetting) yield break;
 
-		if (_Markers.Count <= 0) yield break;
+		if (_ARTrackedImageManager.trackables.count <= 0) yield break;
 
-		_ARState = ARCustomStates.Resetting;
+		SetState(ARCustomStates.Resetting);
 
 		_ARTrackedImageManager.enabled = true;
 
@@ -124,9 +109,95 @@ public class ARCustom
 
 		_ARTrackedImageManager.enabled = false;
 
-		_Markers.Clear();
+		_Debug._Markers.Clear();
 
-		_ARState = ARCustomStates.Waiting;
+		SetState(ARCustomStates.Waiting);
+	}
+
+	public void SetState(ARCustomStates newState)
+	{
+		_ARState = newState;
+	}
+}
+
+[Serializable]
+public class ARCustomDebug
+{
+	[Header("References")]
+	public TextMeshProUGUI _DebugText;
+
+	[Header("Data")]
+	public List<GameObject> _Markers;
+
+	public bool _PrintARSession;
+	public bool _PrintARState;
+	public bool _PrintLibrary;
+	public bool _PrintListAdded;
+	public bool _PrintListUpdated;
+	public bool _PrintListRemoved;
+	public bool _PrintTrackablesCount;
+
+	private ARCustom arCustom;
+
+	public void Init(ARCustom currentCustom)
+	{
+		_Markers = new List<GameObject>();
+
+		arCustom = currentCustom;
+	}
+
+	public void DebugData()
+	{
+		_DebugText.text = "";
+
+		if (_PrintARSession)
+		{
+			_DebugText.text += string.Format("AR Session: {0}\n\n", arCustom._ARSession.enabled);
+		}
+
+		if (_PrintARState)
+		{
+			_DebugText.text += string.Format("AR State: {0}\n\n", arCustom._ARState);
+		}
+
+		if (_PrintLibrary)
+		{
+			_DebugText.text += string.Format("Tracked Manager: {0} {1}\n\n",arCustom._ARTrackedImageManager.enabled,  arCustom._ARTrackedImageManager.referenceLibrary);
+		}
+
+		if (arCustom._Info != null)
+		{
+			if (_PrintListAdded && arCustom._Info.added != null)
+			{
+				for (int i = 0; i < arCustom._Info.added.Count; i++)
+				{
+					_DebugText.text += string.Format("ADDED {0}\n\n", arCustom._Info.added[i].referenceImage.name, arCustom._Info.added[i].referenceImage.ToString());
+				}
+			}
+
+			if (_PrintListUpdated && arCustom._Info.updated != null)
+			{
+				for (int i = 0; i < arCustom._Info.updated.Count; i++)
+				{
+					_DebugText.text += string.Format("UPDATED {0}\n\n", arCustom._Info.updated[i].referenceImage.name, arCustom._Info.updated[i].referenceImage.ToString());
+				}
+			}
+
+			if (_PrintListRemoved && arCustom._Info.removed != null)
+			{
+				for (int i = 0; i < arCustom._Info.removed.Count; i++)
+				{
+					_DebugText.text += string.Format("REMOVED {0}\n\n", arCustom._Info.removed[i].referenceImage.name, arCustom._Info.removed[i].referenceImage.ToString());
+				}
+			}
+		}
+
+		if (_PrintTrackablesCount)
+		{
+			_DebugText.text += string.Format("Trackables Count: {0}\n\n", arCustom._ARTrackedImageManager.trackables.count.ToString());
+		}
+
+		_DebugText.transform.parent.GetComponent<RectTransform>().sizeDelta = new Vector2(0.0f, _DebugText.preferredHeight + 50.0f);
 	}
 }
 
@@ -137,6 +208,16 @@ public class TestScript : MonoBehaviour
 	private void Awake()
 	{
 		_ARCustom.Init();
+	}
+
+	private void Update()
+	{
+		_ARCustom._Debug.DebugData();
+	}
+
+	public void ButtonARSessionSwitch()
+	{
+		_ARCustom.SessionSwitch();
 	}
 
 	public void ButtonMarkerDown()

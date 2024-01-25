@@ -6,20 +6,12 @@ using UnityEngine.XR.ARFoundation;
 
 public class TestMarker : MonoBehaviour
 {
-	public TestScript _TestScript;
-
-	public ARTrackedImage _ARTrackedImage;
+	public ARCustom _ARCustom;
 
 	private void Start()
 	{
-		GameObject GO = GameObject.FindGameObjectWithTag("Test");
+		_ARCustom = GameObject.FindGameObjectWithTag("Test").GetComponent<TestScript>()._ARCustom;
 
-		_TestScript = GO.GetComponent<TestScript>();
-
-		_ARTrackedImage = GO.GetComponent<ARTrackedImage>();
-
-		_TestScript._ARCustom._Markers.Add(gameObject);
-
-		_TestScript._ARCustom.StopTracking();
+		_ARCustom._Debug._Markers.Add(gameObject);
 	}
 }

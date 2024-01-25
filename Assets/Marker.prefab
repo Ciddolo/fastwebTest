@@ -96,5 +96,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddb5a188d2ca23341a25bc0de664320d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _TestScript: {fileID: 0}
-  _ARTrackedImage: {fileID: 0}
+  _ARCustom:
+    _ArGameObjects: []
+    _ARSession: {fileID: 0}
+    _ARTrackedImageManager: {fileID: 0}
+    _Library: {fileID: 0}
+    _ARState: 0
+    _Debug:
+      _DebugText: {fileID: 0}
+      _Markers: []
+      _PrintARSession: 0
+      _PrintARState: 0
+      _PrintLibrary: 0
+      _PrintListAdded: 0
+      _PrintListUpdated: 0
+      _PrintListRemoved: 0
+      _PrintTrackablesCount: 0
