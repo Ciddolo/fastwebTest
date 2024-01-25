@@ -98,4 +98,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _TestScript: {fileID: 0}
   _ARTrackedImage: {fileID: 0}
-  _Int: 0

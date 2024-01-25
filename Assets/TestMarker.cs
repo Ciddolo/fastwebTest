@@ -10,8 +10,6 @@ public class TestMarker : MonoBehaviour
 
 	public ARTrackedImage _ARTrackedImage;
 
-	public int _Int;
-
 	private void Start()
 	{
 		GameObject GO = GameObject.FindGameObjectWithTag("Test");
@@ -20,10 +18,8 @@ public class TestMarker : MonoBehaviour
 
 		_ARTrackedImage = GO.GetComponent<ARTrackedImage>();
 
-		_TestScript._Markers.Add(gameObject);
+		_TestScript._ARCustom._Markers.Add(gameObject);
 
-		_Int = _TestScript._Int;
-
-		_TestScript._Int++;
+		_TestScript._ARCustom.StopTracking();
 	}
 }

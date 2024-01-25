@@ -1,154 +1,156 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
-public class TestScript : MonoBehaviour
+public enum ARCustomStates
 {
-	public GameObject _ArSessionPrefab;
+	Starting,
+	Tracking,
+	Waiting,
+	Resetting
+}
 
-	public GameObject _MarkerPrefab;
+public enum ARGameObjects
+{
+	SessionGO,
+	SessionPrefab,
+	MarkerPrefab,
+}
 
-	public GameObject _ARSessionGO;
+[Serializable]
+public class ARCustom
+{
+	[Header("References")]
+	public GameObject[] _ArGameObjects;
+
+	public ARSession _ARSession;
 
 	public ARTrackedImageManager _ARTrackedImageManager;
 
 	public XRReferenceImageLibrary _Library;
 
-	public IReferenceImageLibrary ReferenceImageLibrary;
+	[Header("Data")]
+	public ARCustomStates _ARState;
+
+	public bool _PrintDebug;
 
 	public List<GameObject> _Markers;
 
-	public ARTrackedImagesChangedEventArgs _Info;
+	private ARTrackedImagesChangedEventArgs _info;
 
-	public int _Int = 0;
-
-	public bool _IsResetting;
-	public bool _IsCreatingARTrackingImageManager;
-
-	private void Awake()
+	public void Init()
 	{
-		CreateARTrackedImageManager();
-
-		ReferenceImageLibrary = _ARTrackedImageManager.referenceLibrary;
-
-		_Markers = new List<GameObject>();
-	}
-
-	private void Update()
-	{
-		if (!_ARTrackedImageManager) return;
-	}
-
-	public void CreateARTrackedImageManager()
-	{
-		if (_ARTrackedImageManager) return;
-
-		if (_IsCreatingARTrackingImageManager) return;
-
-		StartCoroutine(CreatingARTrackedImageManager());
-	}
-
-	public IEnumerator CreatingARTrackedImageManager()
-	{
-		_IsCreatingARTrackingImageManager = true;
-
-		_ARTrackedImageManager = gameObject.AddComponent<ARTrackedImageManager>();
-
-		while (!_ARTrackedImageManager) yield return new WaitForEndOfFrame();
-
-		_ARTrackedImageManager.enabled = false;
-		_ARTrackedImageManager.referenceLibrary = _Library;
-		_ARTrackedImageManager.trackedImagePrefab = _MarkerPrefab;
-		_ARTrackedImageManager.requestedMaxNumberOfMovingImages = 1;
+		_ARState = ARCustomStates.Starting;
 
 		_ARTrackedImageManager.trackedImagesChanged += (info) => { PrefabManager(info); };
 
-		_IsCreatingARTrackingImageManager = false;
-	}
+		_Markers = new List<GameObject>();
 
-	public void OPD()
-	{
-		if (!_ARTrackedImageManager) return;
-
-		if (_IsCreatingARTrackingImageManager) return;
-
-		if (_IsResetting) return;
-
-		_ARTrackedImageManager.referenceLibrary = ReferenceImageLibrary;
-
-		_ARTrackedImageManager.enabled = true;
-	}
-
-	public void OPU()
-	{
-		if (!_ARTrackedImageManager) return;
-
-		if (_IsCreatingARTrackingImageManager) return;
-
-		if (_IsResetting) return;
-
-		_ARTrackedImageManager.enabled = false;
-	}
-
-	public void ARReset()
-	{
-		if (_IsResetting) return;
-
-		StartCoroutine(ARResetting());
-	}
-
-	public IEnumerator ARResetting()
-	{
-		_IsResetting = true;
-
-		for (int i = _Markers.Count - 1; i >= 0; i--)
-		{
-			DestroyImmediate(_Markers[i]);
-
-			while (_Markers[i]) yield return new WaitForEndOfFrame();
-		}
-
-		_Markers.Clear();
-
-		Destroy(_ARTrackedImageManager);
-
-		while (_ARTrackedImageManager) yield return new WaitForEndOfFrame();
-
-		DestroyImmediate(_ARSessionGO);
-
-		while (_ARSessionGO) yield return new WaitForEndOfFrame();
-
-		_ARSessionGO = Instantiate(_ArSessionPrefab);
-
-		while (!_ARSessionGO) yield return new WaitForEndOfFrame();
-
-		CreateARTrackedImageManager();
-
-		while (!_ARTrackedImageManager) yield return new WaitForEndOfFrame();
-
-		_IsResetting = false;
+		_ARState = ARCustomStates.Waiting;
 	}
 
 	private void PrefabManager(ARTrackedImagesChangedEventArgs info)
 	{
-		_Info = info;
+		_info = info;
 
-		for (int i = 0; i < _Info.added.Count; i++)
+		if (!_PrintDebug) return;
+
+		for (int i = 0; i < _info.added.Count; i++)
 		{
-			Debug.Log("ADDED " + _Info.added[i].referenceImage.name);
-			Debug.Log(_Info.added[i].referenceImage.ToString());
+			Debug.Log(string.Format("ADDED {0} {1}", _info.added[i].referenceImage.name, _info.added[i].referenceImage.ToString()));
 		}
 
-		for (int i = 0; i < _Info.updated.Count; i++)
+		for (int i = 0; i < _info.updated.Count; i++)
 		{
-			Debug.Log("UPDATED " + _Info.updated[i].referenceImage.name);
+			Debug.Log(string.Format("UPDATED {0} {1}", _info.updated[i].referenceImage.name, _info.updated[i].referenceImage.ToString()));
 		}
 
-		for (int i = 0; i < _Info.removed.Count; i++)
+		for (int i = 0; i < _info.removed.Count; i++)
 		{
-			Debug.Log("REMOVED " + _Info.removed[i].referenceImage.name);
+			Debug.Log(string.Format("REMOVED {0} {1}", _info.removed[i].referenceImage.name, _info.removed[i].referenceImage.ToString()));
 		}
+
+		Debug.Log(_ARTrackedImageManager.trackables);
+	}
+
+	public void StartTracking()
+	{
+		if (_ARState != ARCustomStates.Waiting) return;
+
+		if (_ARTrackedImageManager.trackables.count > 0) return;
+
+		_ARTrackedImageManager.enabled = true;
+
+		_ARState = ARCustomStates.Tracking;
+	}
+
+	public void StopTracking()
+	{
+		if (_ARState != ARCustomStates.Tracking) return;
+
+		_ARTrackedImageManager.enabled = false;
+
+		_ARState = ARCustomStates.Waiting;
+	}
+
+	public IEnumerator ResetSession()
+	{
+		if (_ARState == ARCustomStates.Resetting) yield break;
+
+		if (_Markers.Count <= 0) yield break;
+
+		_ARState = ARCustomStates.Resetting;
+
+		_ARTrackedImageManager.enabled = true;
+
+		while (_ARTrackedImageManager.trackables.count > 0)
+		{
+			_ARSession.Reset();
+
+			int resetCounter = 0;
+
+			while (_ARTrackedImageManager.trackables.count > 0 && resetCounter < 120)
+			{
+				resetCounter++;
+
+				yield return new WaitForEndOfFrame();
+			}
+		}
+
+		_ARTrackedImageManager.enabled = false;
+
+		_Markers.Clear();
+
+		_ARState = ARCustomStates.Waiting;
+	}
+}
+
+public class TestScript : MonoBehaviour
+{
+	public ARCustom _ARCustom;
+
+	private void Awake()
+	{
+		_ARCustom.Init();
+	}
+
+	public void ButtonMarkerDown()
+	{
+		_ARCustom.StartTracking();
+	}
+
+	public void ButtonMarkerUp()
+	{
+		_ARCustom.StopTracking();
+	}
+
+	public void ARReset()
+	{
+		StartCoroutine(_ARCustom.ResetSession());
 	}
 }

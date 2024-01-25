@@ -136,7 +136,7 @@ GameObject:
   - component: {fileID: 54179416}
   - component: {fileID: 54179415}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -651,11 +651,17 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!1 &595515254 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5404665283978908124, guid: 00b3609ad19fbb84e99a49b7ca51c19d, type: 3}
+--- !u!114 &595515256 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7344558703301549162, guid: 00b3609ad19fbb84e99a49b7ca51c19d, type: 3}
   m_PrefabInstance: {fileID: 3371921358093487035}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3859a92a05d4f5d418cb6ca605290e74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -1093,7 +1099,7 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1550618131}
           m_TargetAssemblyTypeName: TestScript, Assembly-CSharp
-          m_MethodName: OPD
+          m_MethodName: ButtonMarkerDown
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -1109,7 +1115,7 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 1550618131}
           m_TargetAssemblyTypeName: TestScript, Assembly-CSharp
-          m_MethodName: OPU
+          m_MethodName: ButtonMarkerUp
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -1263,6 +1269,7 @@ GameObject:
   - component: {fileID: 1550618130}
   - component: {fileID: 1550618129}
   - component: {fileID: 1550618131}
+  - component: {fileID: 1550618132}
   m_Layer: 0
   m_Name: XR Origin
   m_TagString: Test
@@ -1315,15 +1322,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80e06184cad93184cbfe1c879d6b2e56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _ArSessionPrefab: {fileID: 5404665283978908124, guid: 00b3609ad19fbb84e99a49b7ca51c19d, type: 3}
-  _MarkerPrefab: {fileID: 2193645001349646722, guid: c2128e89512b8bc41a68ac39464e6bfa, type: 3}
-  _ARSessionGO: {fileID: 595515254}
-  _ARTrackedImageManager: {fileID: 0}
-  _Library: {fileID: 11400000, guid: ae09d762dd20c4c4782ea22e08bb9518, type: 2}
-  _Markers: []
-  _Test: []
-  _IsResetting: 0
-  _IsCreatingARTrackingImageManager: 0
+  _ARCustom:
+    _ArGameObjects: []
+    _ARSession: {fileID: 595515256}
+    _ARTrackedImageManager: {fileID: 1550618132}
+    _Library: {fileID: 11400000, guid: ae09d762dd20c4c4782ea22e08bb9518, type: 2}
+    _ARState: 0
+    _PrintDebug: 0
+    _Markers: []
+  Trackables: 0
+--- !u!114 &1550618132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550618127}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dea56a9eaadd1c439095de4f9a371cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SerializedLibrary: {fileID: 11400000, guid: ae09d762dd20c4c4782ea22e08bb9518, type: 2}
+  m_MaxNumberOfMovingImages: 1
+  m_TrackedImagePrefab: {fileID: 2193645001349646722, guid: c2128e89512b8bc41a68ac39464e6bfa, type: 3}
 --- !u!1 &2098726434
 GameObject:
   m_ObjectHideFlags: 0
@@ -1407,6 +1429,10 @@ PrefabInstance:
     - target: {fileID: 5404665283978908124, guid: 00b3609ad19fbb84e99a49b7ca51c19d, type: 3}
       propertyPath: m_Name
       value: AR Session
+      objectReference: {fileID: 0}
+    - target: {fileID: 7344558703301549162, guid: 00b3609ad19fbb84e99a49b7ca51c19d, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
